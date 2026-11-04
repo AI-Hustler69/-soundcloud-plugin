@@ -89,6 +89,17 @@ describe("SoundCloudClient", () => {
     expect(second.mock.callsTo(`${API}/tracks/`)).toHaveLength(3); // 1 + 2 retries
   });
 
+  it("includes the underlying cause of network failures", async () => {
+    const mock = new MockFetch();
+    mock.on("POST", TOKEN_URL, tokenResponse("tok"));
+    mock.on("GET", `${API}/tracks/`, () => {
+      throw Object.assign(new TypeError("fetch failed"), { cause: { code: "ENOTFOUND" } });
+    });
+    const auth = new ClientCredentialsAuth({ clientId: "id", clientSecret: "s", fetch: mock.fetch });
+    const client = new SoundCloudClient({ auth, fetch: mock.fetch, sleep: noSleep });
+    await expect(client.getTrack("soundcloud:tracks:1")).rejects.toThrow("Could not reach the SoundCloud API: fetch failed (ENOTFOUND)");
+  });
+
   it("maps 404 to NotFoundError and other failures to SoundCloudError", async () => {
     const { mock, client } = setup();
     mock.on("GET", `${API}/tracks/soundcloud%3Atracks%3A404`, json({}, 404));

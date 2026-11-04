@@ -134,7 +134,7 @@ All tools are read-only and return JSON.
 |---|---|---|---|
 | `query` | string | — | Free text. `query` and/or `genre` is required. |
 | `genre` | string | — | Passed to the API `genres` filter; separate several genres with commas. |
-| `bpm_min`, `bpm_max` | number | — | Inclusive range. Sent to the API as `bpm[from]`/`bpm[to]` and checked again locally. |
+| `bpm_min`, `bpm_max` | number | — | Inclusive range, always checked locally. Also sent to the API as `bpm[from]`/`bpm[to]`, except when `include_unknown_bpm` is true (the API filter would drop tracks without BPM). |
 | `downloadable_only` | boolean | `true` | Keep only tracks with `downloadable: true`. The API has no such filter, so it is applied locally. |
 | `include_free_download_links` | boolean | `false` | With `downloadable_only`, also keep tracks whose buy link is labelled "free download". These are often gated and are flagged as such. |
 | `include_unknown_bpm` | boolean | `false` | With a BPM range, keep tracks that have no BPM. SoundCloud has BPM data for only some tracks. |
@@ -156,7 +156,7 @@ Input: `track`, which can be a public URL, a numeric id or a URN such as `soundc
 
 ### `get_playlist`
 
-Input: `playlist` (a URL, id or URN), `downloadable_only` (default `false`) and `max_tracks` (default 200, maximum 500). It goes through every page of the playlist and returns the per-track status plus a summary: how many tracks are downloadable, have a free link, are gated or are not downloadable, and whether the list was truncated.
+Input: `playlist` (a URL, id or URN), `downloadable_only` (default `false`) and `max_tracks` (default 200, maximum 500). It goes through every page of the playlist and returns the per-track status (including `access`; blocked tracks are listed, not hidden) plus a summary: how many tracks are downloadable, have a free link, are gated, are not downloadable or are `blocked`; how many listed tracks the API did not return at all (`unavailable`, e.g. private or deleted); and `truncated`, which is true only when `max_tracks` cut the list short.
 
 ### `resolve_url`
 
@@ -183,7 +183,8 @@ A free download on SoundCloud usually only lets **you** have the file for **pers
 - `all-rights-reserved`: get the artist's permission, or rely on a platform licence;
 - CC **NC** (NonCommercial): no monetised or commercial use;
 - CC **ND** (NoDerivatives): a mix may count as an adaptation, so ask the artist;
-- CC BY / BY-SA / no-rights-reserved: generally fine with credit.
+- CC BY / no-rights-reserved: generally fine with credit;
+- CC BY-SA: allowed with credit, but a mix that adapts the track must itself be shared under BY-SA, which is not possible if the same mix contains all-rights-reserved tracks.
 
 The server's `license.public_mix` field is a hint, not legal advice.
 
@@ -244,4 +245,4 @@ tests/                           vitest suites with mocked API responses
 
 ## License
 
-[MIT](LICENSE). The code is MIT-licensed. Content you find through SoundCloud stays under its creators' licenses.
+[MIT](LICENSE). The code is MIT-licensed. The bundled `dist/server.js` also contains third-party packages under their own licenses (MIT, ISC, BSD-3-Clause), listed with full texts in [`dist/THIRD_PARTY_LICENSES.txt`](dist/THIRD_PARTY_LICENSES.txt). Content you find through SoundCloud stays under its creators' licenses.

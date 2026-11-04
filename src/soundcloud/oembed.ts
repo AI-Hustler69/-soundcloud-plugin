@@ -5,7 +5,7 @@
  * downloadable flag, search or playlist contents.
  */
 import { USER_AGENT } from "../config.js";
-import { NotFoundError, SoundCloudError, truncate } from "./errors.js";
+import { NotFoundError, SoundCloudError, truncate, describeNetworkError } from "./errors.js";
 import type { FetchLike, OEmbedResponse } from "./types.js";
 import { API_HOST, type ResourceType } from "./urls.js";
 
@@ -31,7 +31,7 @@ export class OEmbedClient {
         headers: { Accept: "application/json", "User-Agent": USER_AGENT },
       });
     } catch (err) {
-      throw new SoundCloudError(`Could not reach SoundCloud oEmbed: ${(err as Error).message}`);
+      throw new SoundCloudError(`Could not reach SoundCloud oEmbed: ${describeNetworkError(err)}`);
     }
     if (res.status === 404) throw new NotFoundError("SoundCloud oEmbed found nothing at that URL (private or deleted?).");
     if (!res.ok) {

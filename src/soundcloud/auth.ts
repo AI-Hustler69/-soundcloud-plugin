@@ -9,7 +9,7 @@
  *   renewed with the single-use refresh token when possible.
  */
 import { USER_AGENT } from "../config.js";
-import { AuthError, RateLimitError, truncate } from "./errors.js";
+import { AuthError, RateLimitError, truncate, describeNetworkError } from "./errors.js";
 import type { FetchLike, SCTokenResponse } from "./types.js";
 
 export const TOKEN_URL = "https://secure.soundcloud.com/oauth/token";
@@ -104,7 +104,7 @@ export class ClientCredentialsAuth implements TokenSource {
         body: new URLSearchParams(params).toString(),
       });
     } catch (err) {
-      throw new AuthError(`Could not reach the SoundCloud token endpoint: ${(err as Error).message}`);
+      throw new AuthError(`Could not reach the SoundCloud token endpoint: ${describeNetworkError(err)}`);
     }
 
     if (res.status === 429) {

@@ -229,6 +229,8 @@ export interface GetPlaylistResult {
     free_download_links: number;
     gated_links: number;
     not_downloadable: number;
+    blocked: number;
+    unavailable: number;
     truncated: boolean;
   };
   tracks: PlaylistTrackEntry[];
@@ -282,7 +284,11 @@ export async function getPlaylist(
     free_download_links: all.filter((t) => t.free_download === "external_link").length,
     gated_links: all.filter((t) => t.free_download === "gated_external_link").length,
     not_downloadable: all.filter((t) => t.free_download === "none").length,
-    truncated: truncated || (typeof meta.track_count === "number" && meta.track_count > all.length),
+    blocked: all.filter((t) => t.access === "blocked").length,
+    /** Listed in the playlist's track_count but not returned by the API (private, deleted…). */
+    unavailable: !truncated && typeof meta.track_count === "number" ? Math.max(0, meta.track_count - all.length) : 0,
+    /** True only when max_tracks cut the list short. */
+    truncated,
   };
 
   return {

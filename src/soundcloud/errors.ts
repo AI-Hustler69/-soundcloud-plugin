@@ -40,6 +40,14 @@ export class InputError extends Error {
   }
 }
 
+/** "fetch failed" hides the real reason (DNS, refused, proxy, TLS) in err.cause. */
+export function describeNetworkError(err: unknown): string {
+  const e = err as { message?: string; cause?: { code?: string; message?: string } };
+  const base = e?.message ?? String(err);
+  const cause = e?.cause?.code ?? e?.cause?.message;
+  return cause && !base.includes(cause) ? `${base} (${cause})` : base;
+}
+
 /** Never let raw response bodies grow unbounded inside error messages. */
 export function truncate(text: string, max = 300): string {
   return text.length > max ? `${text.slice(0, max)}…` : text;

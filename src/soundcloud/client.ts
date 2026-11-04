@@ -7,7 +7,7 @@
 import { USER_AGENT } from "../config.js";
 import type { TokenSource } from "./auth.js";
 import { parseRetryAfter } from "./auth.js";
-import { AuthError, NotFoundError, RateLimitError, SoundCloudError, truncate } from "./errors.js";
+import { AuthError, NotFoundError, RateLimitError, SoundCloudError, truncate, describeNetworkError } from "./errors.js";
 import type { FetchLike, SCCollection, SCPlaylist, SCTrack, SCUser } from "./types.js";
 import { API_HOST, assertApiUrl, parseApiResourceUrl, type ResourceType } from "./urls.js";
 
@@ -100,6 +100,9 @@ export class SoundCloudClient {
       buildUrl(`/playlists/${encodeURIComponent(urn)}/tracks`, {
         limit: clampPageSize(pageSize),
         linked_partitioning: true,
+        // The default ("playable,preview") silently drops blocked tracks, which
+        // would shift positions and hide them; ask for all and report access per track.
+        access: "playable,preview,blocked",
         secret_token: secretToken,
       }),
     );
@@ -160,7 +163,7 @@ export class SoundCloudClient {
           },
         });
       } catch (err) {
-        throw new SoundCloudError(`Could not reach the SoundCloud API: ${(err as Error).message}`);
+        throw new SoundCloudError(`Could not reach the SoundCloud API: ${describeNetworkError(err)}`);
       }
 
       if (res.status === 401 && !authRetried) {

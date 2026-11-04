@@ -7,6 +7,7 @@ coverage/
 # straight from a git checkout without `npm install`.
 dist/*
 !dist/server.js
+!dist/THIRD_PARTY_LICENSES.txt
 
 # Secrets: never commit real credentials.
 .env

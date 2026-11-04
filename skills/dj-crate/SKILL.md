@@ -39,7 +39,7 @@ For each track you plan to use, check from the tool output:
 | Check | Field | Action |
 |---|---|---|
 | Artist-enabled download | `downloadable` / `free_download` | `soundcloud_download` = OK. `external_link` = mention the link. `gated_external_link` = flag the gate. `none` = drop it unless the user wants it anyway. |
-| License | `license.code`, `license.public_mix`, `license.note` | See the license section below. For a public mix, prefer `likely_ok_with_attribution`. |
+| License | `license.code`, `license.public_mix`, `license.note` | See the license section below. For a public mix, prefer `likely_ok_with_attribution`, and always show `license.note` (it carries conditions such as ShareAlike). |
 | Playable | `access` | Drop `blocked`. Note `preview`. |
 | Tempo / key | `bpm`, `camelot` | Unknown values are allowed but must be flagged ("analyse in your DJ software after downloading"). |
 
@@ -71,4 +71,4 @@ Then add the total runtime, the tracks you dropped and why (one line each), and 
 
 ## License reminder (always include)
 
-> "Free download" on SoundCloud usually means **personal use only**. Before you publish, stream or monetise a mix (SoundCloud, Mixcloud, YouTube, Twitch, a paid gig), check each track's license and the artist's description, and ask the artist when in doubt. `all-rights-reserved` tracks need the artist's permission (or a platform licence) for public use. CC "NonCommercial" licences exclude monetised use, and "NoDerivatives" licences may exclude mixes. This is guidance, not legal advice.
+> "Free download" on SoundCloud usually means **personal use only**. Before you publish, stream or monetise a mix (SoundCloud, Mixcloud, YouTube, Twitch, a paid gig), check each track's license and the artist's description, and ask the artist when in doubt. `all-rights-reserved` tracks need the artist's permission (or a platform licence) for public use. CC "NonCommercial" licences exclude monetised use, "NoDerivatives" licences may exclude mixes, and "ShareAlike" (BY-SA) requires a mix that adapts the track to be shared under the same licence, which rules out mixing it with all-rights-reserved tracks in a published mix. This is guidance, not legal advice.

@@ -207,7 +207,20 @@ describe("get_playlist", () => {
 
     const r = await getPlaylist(ctx, { playlist: "9" });
     expect(r.playlist).toMatchObject({ title: "Crate", owner: "dj", track_count: 4 });
-    expect(r.summary).toEqual({ tracks_checked: 4, downloadable: 1, free_download_links: 1, gated_links: 1, not_downloadable: 1, truncated: false });
+    expect(r.summary).toEqual({
+      tracks_checked: 4,
+      downloadable: 1,
+      free_download_links: 1,
+      gated_links: 1,
+      not_downloadable: 1,
+      blocked: 0,
+      unavailable: 0,
+      truncated: false,
+    });
+    // Blocked tracks are requested too, so positions match the real playlist order.
+    expect(new URL(mock.callsTo(`${API}/playlists/soundcloud%3Aplaylists%3A9/tracks`)[0]!.url).searchParams.get("access")).toBe(
+      "playable,preview,blocked",
+    );
     expect(r.tracks.map((t) => [t.position, t.free_download])).toEqual([
       [1, "soundcloud_download"],
       [2, "none"],
@@ -240,12 +253,21 @@ describe("get_playlist", () => {
     expect(r.summary.truncated).toBe(false);
   });
 
-  it("reports truncation from track_count when the API returns fewer tracks than listed", async () => {
+  it("reports blocked and unavailable tracks without claiming truncation", async () => {
     const { mock, ctx } = apiCtx();
-    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: 300 }));
-    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`, json({ collection: [track()], next_href: null }));
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: 30 }));
+    mock.on(
+      "GET",
+      `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`,
+      json({ collection: [track({ id: 1 }), track({ id: 2, access: "blocked" }), track({ id: 3, downloadable: true })], next_href: null }),
+    );
     const r = await getPlaylist(ctx, { playlist: "9" });
-    expect(r.summary.truncated).toBe(true);
+    expect(r.summary).toMatchObject({ tracks_checked: 3, blocked: 1, unavailable: 27, truncated: false });
+    expect(r.tracks.map((t) => [t.position, t.id, t.access])).toEqual([
+      [1, "1", "playable"],
+      [2, "2", "blocked"],
+      [3, "3", "playable"],
+    ]);
   });
 
   it("passes the secret_token of a secret-link playlist to the tracks request", async () => {
