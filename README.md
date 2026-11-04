@@ -207,6 +207,7 @@ npm run list-tools
 ```
 
 - `npm run build` type-checks the code and bundles `src/` into `dist/server.js` with esbuild. Commit the rebuilt `dist/server.js` together with any source change.
+- **Releasing:** Claude Code only delivers a plugin update when the version in `.claude-plugin/plugin.json` changes. Bump `package.json` (`npm version <x.y.z> --no-git-tag-version`), `.claude-plugin/plugin.json` and `SERVER_VERSION` in `src/config.ts` together; a test fails if they differ.
 - `npm test` runs the vitest suite. Every test uses a scripted, mocked `fetch`, and a global setup makes any real network call fail. **No test calls the SoundCloud API.**
 - `npm run list-tools` starts the bundled server over stdio, does the MCP handshake and prints the tools.
 - `node scripts/smoke.mjs <tool> '<json-args>'` calls one tool against the **real** SoundCloud service, for example `node scripts/smoke.mjs get_track '{"track":"https://soundcloud.com/forss/flickermood"}'`. It is a manual check and is not part of `npm test`.
