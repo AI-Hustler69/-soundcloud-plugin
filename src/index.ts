@@ -3,6 +3,7 @@
  */
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadConfig, SERVER_NAME, SERVER_VERSION } from "./config.js";
+import { createProxyFetch } from "./http.js";
 import { createServer } from "./server.js";
 
 async function main(): Promise<void> {
@@ -10,7 +11,10 @@ async function main(): Promise<void> {
   for (const warning of config.warnings) console.error(`[${SERVER_NAME}] ${warning}`);
   console.error(`[${SERVER_NAME}] v${SERVER_VERSION} starting in ${config.mode} mode`);
 
-  const server = createServer(config);
+  const proxyFetch = createProxyFetch();
+  if (proxyFetch) console.error(`[${SERVER_NAME}] using HTTP(S)_PROXY from the environment`);
+
+  const server = createServer(config, { fetch: proxyFetch });
   await server.connect(new StdioServerTransport());
 
   const shutdown = () => {

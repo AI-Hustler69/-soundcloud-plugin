@@ -208,6 +208,7 @@ npm run list-tools
 - `npm run build` type-checks the code and bundles `src/` into `dist/server.js` with esbuild. Commit the rebuilt `dist/server.js` together with any source change.
 - `npm test` runs the vitest suite. Every test uses a scripted, mocked `fetch`, and a global setup makes any real network call fail. **No test calls the SoundCloud API.**
 - `npm run list-tools` starts the bundled server over stdio, does the MCP handshake and prints the tools.
+- `node scripts/smoke.mjs <tool> '<json-args>'` calls one tool against the **real** SoundCloud service, for example `node scripts/smoke.mjs get_track '{"track":"https://soundcloud.com/forss/flickermood"}'`. It is a manual check and is not part of `npm test`.
 
 Project layout:
 
@@ -236,6 +237,7 @@ tests/                           vitest suites with mocked API responses
 
 - **BPM and key are often missing.** SoundCloud returns `bpm` and `key_signature` only for tracks where analysis data exists, and many tracks have neither. The server-side BPM filter has also been unreliable in the past, which is why every result is checked again locally.
 - **`download_url` is an API link, not a browser link.** It points to `api.soundcloud.com` and works only with an OAuth token, so clicking it in a browser fails even when you are signed in. The server returns it as metadata confirming the artist enabled downloads, and never requests it. To actually download, open the track page (`permalink_url`) and use SoundCloud's own Download button, which is there whenever downloads are enabled.
+- **Proxies:** Node's built-in `fetch` ignores proxy variables, so when `HTTPS_PROXY` / `HTTP_PROXY` is set the server routes its requests through that proxy itself (honouring `NO_PROXY`). Node may print an "EnvHttpProxyAgent is experimental" warning to stderr; it is harmless.
 - **Rate limits:** the server honours `429` and `Retry-After`, waiting briefly once or twice before giving up. Searches scan at most 5 pages.
 - **Gate detection is a heuristic** based on a list of known gate domains. An unknown gate shows up as `kind: "other"`; the server still never follows it.
 - The API surface was checked against SoundCloud's official OpenAPI spec (`soundcloud/api`, November 2026). If SoundCloud changes the API, open an issue.
