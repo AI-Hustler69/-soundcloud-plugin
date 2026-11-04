@@ -1,0 +1,51 @@
+{
+  "name": "soundcloud-dj-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for finding free-to-download SoundCloud tracks (artist-enabled downloads only) and building DJ crates. Metadata and links only; never downloads or rips audio.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "soundcloud-dj-mcp": "dist/server.js"
+  },
+  "main": "dist/server.js",
+  "files": [
+    "dist/server.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run typecheck && npm run bundle",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "bundle": "node scripts/bundle.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "node dist/server.js",
+    "list-tools": "node scripts/list-tools.mjs",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "claude-code-plugin",
+    "soundcloud",
+    "dj"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AI-Hustler69/-soundcloud-plugin.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "esbuild": "^0.27.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}

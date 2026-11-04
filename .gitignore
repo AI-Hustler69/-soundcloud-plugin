@@ -1,0 +1,14 @@
+node_modules/
+coverage/
+*.log
+.DS_Store
+
+# Build output: only the bundled server is committed, so the plugin runs
+# straight from a git checkout without `npm install`.
+dist/*
+!dist/server.js
+
+# Secrets: never commit real credentials.
+.env
+.env.*
+!.env.example
