@@ -105,6 +105,10 @@ describe("SoundCloudClient", () => {
     await expect(client.nextPage(`${API}/tracks?cursor=abc`)).resolves.toMatchObject({ collection: [expect.any(Object)] });
     await expect(client.nextPage("https://evil.example.com/tracks?cursor=abc")).rejects.toBeInstanceOf(InputError);
     await expect(client.nextPage("http://api.soundcloud.com/tracks")).rejects.toBeInstanceOf(InputError);
+    for (const audio of ["/tracks/1/download", "/tracks/1/stream", "/tracks/soundcloud:tracks:1/streams", "/tracks/1/preview"]) {
+      await expect(client.nextPage(`${API}${audio}`)).rejects.toBeInstanceOf(InputError);
+    }
+    expect(mock.calls.some((c) => /download|stream|preview/.test(c.url))).toBe(false);
     expect(mock.calls.some((c) => c.url.includes("evil.example.com"))).toBe(false);
   });
 
@@ -145,6 +149,32 @@ describe("SoundCloudClient", () => {
       mock.on("GET", `${API}/resolve?url=`, new Response(null, { status: 302, headers: { location: "https://evil.example.com/x" } }));
       await expect(client.resolve("https://soundcloud.com/a/b")).rejects.toBeInstanceOf(InputError);
       expect(mock.calls.some((c) => c.url.includes("evil"))).toBe(false);
+    });
+
+    it("keeps the secret_token of private resources", async () => {
+      const { mock, client } = setup();
+      mock.on(
+        "GET",
+        `${API}/resolve?url=`,
+        new Response(null, { status: 302, headers: { location: `${API}/playlists/soundcloud:playlists:12?secret_token=s-AbC12` } }),
+      );
+      mock.on("GET", `${API}/playlists/soundcloud:playlists:12?secret_token=s-AbC12`, json({ kind: "playlist", urn: "soundcloud:playlists:12" }));
+      const r = await client.resolve("https://soundcloud.com/a/sets/promo/s-AbC12");
+      expect(r.secretToken).toBe("s-AbC12");
+    });
+
+    it("falls back to the s-xxxx segment of the public URL for the secret token", async () => {
+      const { mock, client } = setup();
+      mock.on("GET", `${API}/resolve?url=`, json({ kind: "playlist", urn: "soundcloud:playlists:12" }));
+      await expect(client.resolve("https://soundcloud.com/a/sets/promo/s-XyZ9")).resolves.toMatchObject({ secretToken: "s-XyZ9" });
+      await expect(client.resolve("https://soundcloud.com/a/sets/promo")).resolves.not.toHaveProperty("secretToken");
+    });
+
+    it("refuses a Location pointing at an audio endpoint", async () => {
+      const { mock, client } = setup();
+      mock.on("GET", `${API}/resolve?url=`, new Response(null, { status: 302, headers: { location: `${API}/tracks/soundcloud:tracks:1/streams` } }));
+      await expect(client.resolve("https://soundcloud.com/a/b")).rejects.toBeInstanceOf(InputError);
+      expect(mock.calls.some((c) => c.url.includes("/streams"))).toBe(false);
     });
 
     it("maps 404 to NotFoundError", async () => {

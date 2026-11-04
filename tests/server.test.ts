@@ -53,10 +53,15 @@ describe("MCP server", () => {
     expect(text(bad)).toMatch(/Not a soundcloud.com URL/);
   });
 
-  it("rejects schema violations", async () => {
-    const client = await connect({}, new MockFetch());
+  it("rejects schema violations before the handler runs", async () => {
+    // API mode with a mock that has no routes: any handler call would fail with "Unexpected request".
+    const mock = new MockFetch();
+    const client = await connect({ SOUNDCLOUD_CLIENT_ID: "id", SOUNDCLOUD_CLIENT_SECRET: "secret" }, mock);
     const res = await client.callTool({ name: "search_tracks", arguments: { query: "x", limit: 999 } });
     expect(res.isError).toBe(true);
+    expect(text(res)).toMatch(/validation/i);
+    expect(text(res)).toMatch(/limit/);
+    expect(mock.calls).toHaveLength(0);
   });
 
   it("surfaces API auth errors as tool errors without leaking the secret", async () => {

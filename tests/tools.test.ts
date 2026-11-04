@@ -220,14 +220,47 @@ describe("get_playlist", () => {
     expect(onlyDl.summary.tracks_checked).toBe(4);
   });
 
-  it("respects max_tracks and reports truncation", async () => {
+  it("stops at max_tracks and reports truncation when more pages exist", async () => {
     const { mock, ctx } = apiCtx();
-    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: 300 }));
-    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`, json({ collection: [track(), track(), track()], next_href: `${API}/next` }));
+    // track_count is unknown, so only the next_href path can mark truncation.
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: null }));
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`, json({ collection: [track(), track()], next_href: `${API}/playlists/soundcloud:playlists:9/tracks?cursor=2` }));
     const r = await getPlaylist(ctx, { playlist: "9", max_tracks: 2 });
     expect(r.tracks).toHaveLength(2);
     expect(r.summary.truncated).toBe(true);
+    expect(mock.calls.some((c) => c.url.includes("cursor=2"))).toBe(false);
     expect(new URL(mock.callsTo(`${API}/playlists/soundcloud%3Aplaylists%3A9/tracks`)[0]!.url).searchParams.get("limit")).toBe("2");
+  });
+
+  it("is not truncated when the last page is reached exactly at max_tracks", async () => {
+    const { mock, ctx } = apiCtx();
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: 2 }));
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`, json({ collection: [track(), track()], next_href: null }));
+    const r = await getPlaylist(ctx, { playlist: "9", max_tracks: 2 });
+    expect(r.summary.truncated).toBe(false);
+  });
+
+  it("reports truncation from track_count when the API returns fewer tracks than listed", async () => {
+    const { mock, ctx } = apiCtx();
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9?`, json({ kind: "playlist", track_count: 300 }));
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A9/tracks?`, json({ collection: [track()], next_href: null }));
+    const r = await getPlaylist(ctx, { playlist: "9" });
+    expect(r.summary.truncated).toBe(true);
+  });
+
+  it("passes the secret_token of a secret-link playlist to the tracks request", async () => {
+    const { mock, ctx } = apiCtx();
+    mock.on(
+      "GET",
+      `${API}/resolve?`,
+      new Response(null, { status: 302, headers: { location: `${API}/playlists/soundcloud:playlists:12?secret_token=s-AbC12` } }),
+    );
+    mock.on("GET", `${API}/playlists/soundcloud:playlists:12?secret_token=s-AbC12`, json({ kind: "playlist", urn: "soundcloud:playlists:12", title: "Promo" }));
+    mock.on("GET", `${API}/playlists/soundcloud%3Aplaylists%3A12/tracks?`, json({ collection: [track({ downloadable: true })] }));
+    const r = await getPlaylist(ctx, { playlist: "https://soundcloud.com/a/sets/promo/s-AbC12" });
+    expect(r.summary.downloadable).toBe(1);
+    const tracksCall = mock.callsTo(`${API}/playlists/soundcloud%3Aplaylists%3A12/tracks`)[0]!;
+    expect(new URL(tracksCall.url).searchParams.get("secret_token")).toBe("s-AbC12");
   });
 
   it("resolves playlist URLs and rejects other types", async () => {

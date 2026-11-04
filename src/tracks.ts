@@ -65,7 +65,11 @@ export interface TrackSummary {
   license: LicenseInfo;
   /** True only when the uploader enabled SoundCloud's native download. */
   downloadable: boolean;
-  /** SoundCloud download link; null unless `downloadable` is true. Requires being signed in on SoundCloud. */
+  /**
+   * SoundCloud API download link; null unless `downloadable` is true.
+   * OAuth-protected (api.soundcloud.com), so it does not open in a browser:
+   * users download from `permalink_url` with SoundCloud's own button.
+   */
   download_url: string | null;
   purchase: PurchaseLink | null;
   /** How (if at all) the artist offers a free download. */

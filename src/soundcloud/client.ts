@@ -34,10 +34,17 @@ export interface TrackSearchQuery {
   pageSize?: number;
 }
 
+interface ResolvedBase {
+  urn: string;
+  id: string;
+  /** secret_token of a private ("secret link") resource; needed for follow-up requests. */
+  secretToken?: string;
+}
+
 export type ResolvedResource =
-  | { type: "track"; urn: string; id: string; resource: SCTrack }
-  | { type: "playlist"; urn: string; id: string; resource: SCPlaylist }
-  | { type: "user"; urn: string; id: string; resource: SCUser };
+  | (ResolvedBase & { type: "track"; resource: SCTrack })
+  | (ResolvedBase & { type: "playlist"; resource: SCPlaylist })
+  | (ResolvedBase & { type: "user"; resource: SCUser });
 
 type Query = Record<string, string | number | boolean | undefined>;
 
@@ -84,11 +91,16 @@ export class SoundCloudClient {
     return this.getJson<SCPlaylist>(buildUrl(`/playlists/${encodeURIComponent(urn)}`, { show_tracks: showTracks }));
   }
 
-  async getPlaylistTracksPage(urn: string, pageSize = MAX_PAGE_SIZE): Promise<SCCollection<SCTrack>> {
+  async getPlaylistTracksPage(
+    urn: string,
+    pageSize = MAX_PAGE_SIZE,
+    secretToken?: string,
+  ): Promise<SCCollection<SCTrack>> {
     return this.getJson<SCCollection<SCTrack>>(
       buildUrl(`/playlists/${encodeURIComponent(urn)}/tracks`, {
         limit: clampPageSize(pageSize),
         linked_partitioning: true,
+        secret_token: secretToken,
       }),
     );
   }
@@ -116,10 +128,11 @@ export class SoundCloudClient {
       const target = assertApiUrl(new URL(location, API_BASE).toString());
       const parsed = parseApiResourceUrl(target.toString());
       const resource = await this.getJson<Record<string, unknown>>(target);
-      return toResolved(resource, parsed);
+      const secretToken = target.searchParams.get("secret_token") ?? secretTokenFromPublicUrl(publicUrl);
+      return toResolved(resource, parsed, secretToken);
     }
     if (body && typeof body === "object" && typeof (body as { kind?: unknown }).kind === "string") {
-      return toResolved(body as Record<string, unknown>, undefined);
+      return toResolved(body as Record<string, unknown>, undefined, secretTokenFromPublicUrl(publicUrl));
     }
     throw new SoundCloudError("SoundCloud /resolve returned neither a redirect nor a resource.", res.status);
   }
@@ -198,9 +211,20 @@ function clampPageSize(n: number | undefined): number {
   return Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(n)));
 }
 
+/** Secret-link URLs end with an "s-xxxx" path segment that doubles as the secret_token. */
+export function secretTokenFromPublicUrl(publicUrl: string): string | undefined {
+  try {
+    const last = new URL(publicUrl).pathname.split("/").filter(Boolean).pop();
+    return last && /^s-[A-Za-z0-9]+$/.test(last) ? last : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function toResolved(
   resource: Record<string, unknown>,
   parsed: { type: ResourceType; id: string; urn: string } | undefined,
+  secretToken?: string | null,
 ): ResolvedResource {
   const kind = typeof resource.kind === "string" ? resource.kind : undefined;
   const type: ResourceType | undefined =
@@ -214,7 +238,7 @@ function toResolved(
   if (!urn) throw new SoundCloudError("SoundCloud resolved the URL but returned no identifier.");
   const id = urn.split(":").pop() ?? urn;
 
-  return { type, urn, id, resource } as ResolvedResource;
+  return { type, urn, id, resource, ...(secretToken ? { secretToken } : {}) } as ResolvedResource;
 }
 
 async function parseJson(res: Response): Promise<unknown> {

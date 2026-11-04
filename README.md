@@ -14,7 +14,7 @@ The plugin has two parts:
 These limits are deliberate and are enforced in code and tests:
 
 - **It downloads nothing.** The server returns metadata and links only. It never calls SoundCloud's stream, preview or download endpoints. It never records, rips or converts a stream into a file.
-- **It returns a download link only when the artist enabled downloads.** `download_url` is returned only when SoundCloud reports `downloadable: true`. The API sometimes includes a `download_url` for tracks that are not downloadable; the server drops it.
+- **It returns a download link only when the artist enabled downloads.** `download_url` is returned only when SoundCloud reports `downloadable: true`. The API sometimes includes a `download_url` for tracks that are not downloadable; the server drops it. The server never requests the link itself; you download from the track page with SoundCloud's own Download button.
 - **It does not bypass gates.** "Free download" buttons that go to Hypeddit, ToneDen and similar follow/like/e-mail gates are reported as `gated: true`. They are never opened, followed or automated. If you want the track, open the gate yourself.
 - **It does not scrape.** The only data sources are the official SoundCloud API with your own credentials and SoundCloud's documented oEmbed endpoint. No HTML pages are scraped.
 - **It does not give legal advice.** License hints are a convenience. Read the [license note](#free-download-does-not-mean-free-to-use-in-public).
@@ -149,7 +149,7 @@ Input: `track`, which can be a public URL, a numeric id or a URN such as `soundc
 - `title`, `artist`, `genre`, `bpm`, `key_signature`, and `camelot` (for example `8A`);
 - `duration` and `duration_ms`;
 - `license`, with `code`, `label`, `public_mix` guidance and a `note`;
-- `downloadable` and `download_url` (the URL only when downloadable);
+- `downloadable` and `download_url`. The URL is returned only when the track is downloadable. It is an OAuth-protected API link, so give users the track page instead;
 - `purchase`, the buy or "free download" link. Its `kind` is `download_gate`, `file_host`, `store` or `other`, with `labelled_free` and `gated` flags. The server never opens this link;
 - `free_download`: `soundcloud_download`, `external_link`, `gated_external_link` or `none`;
 - `permalink_url` and `access`.
@@ -173,7 +173,7 @@ Ask Claude, and the `dj-crate` skill takes over:
 
 You can also call the skill directly with `/soundcloud-dj:dj-crate`.
 
-The skill returns a numbered table with these columns: Artist – Title, BPM, key (Camelot), length, a transition note, the link (the SoundCloud download link or the track page, with gated links marked) and the license verdict. After the table it lists the dropped tracks and repeats the license reminder.
+The skill returns a numbered table with these columns: Artist – Title, BPM, key (Camelot), length, a transition note, the link (the track page, where SoundCloud's Download button is, or the artist's external link, with gated links marked) and the license verdict. After the table it lists the dropped tracks and repeats the license reminder.
 
 ## "Free download" does not mean free to use in public
 
@@ -235,7 +235,7 @@ tests/                           vitest suites with mocked API responses
 ## Known limitations
 
 - **BPM and key are often missing.** SoundCloud returns `bpm` and `key_signature` only for tracks where analysis data exists, and many tracks have neither. The server-side BPM filter has also been unreliable in the past, which is why every result is checked again locally.
-- **`download_url` may require you to be signed in on SoundCloud** to work in a browser. The server just passes the link on. The track page (`permalink_url`) always has SoundCloud's own Download button when downloads are enabled.
+- **`download_url` is an API link, not a browser link.** It points to `api.soundcloud.com` and works only with an OAuth token, so clicking it in a browser fails even when you are signed in. The server returns it as metadata confirming the artist enabled downloads, and never requests it. To actually download, open the track page (`permalink_url`) and use SoundCloud's own Download button, which is there whenever downloads are enabled.
 - **Rate limits:** the server honours `429` and `Retry-After`, waiting briefly once or twice before giving up. Searches scan at most 5 pages.
 - **Gate detection is a heuristic** based on a list of known gate domains. An unknown gate shows up as `kind: "other"`; the server still never follows it.
 - The API surface was checked against SoundCloud's official OpenAPI spec (`soundcloud/api`, November 2026). If SoundCloud changes the API, open an issue.

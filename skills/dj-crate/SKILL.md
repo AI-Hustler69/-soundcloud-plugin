@@ -10,7 +10,7 @@ Build a mix-ready crate from SoundCloud tracks whose **artists themselves enable
 ## Hard rules
 
 - The tools return **metadata and links only**. Never download, record, rip or convert streams, and never suggest stream-ripping tools or websites.
-- Only present a download link (`download_url`) when `downloadable` is `true`. Otherwise link the track page (`permalink_url`).
+- The link to give the user is always the track page (`permalink_url`). When `downloadable` is `true`, tell them to use SoundCloud's **Download** button there. `download_url` is an OAuth-protected API link that does not open in a browser: treat it only as confirmation that downloads are enabled, and never show it as a clickable link.
 - **Never bypass download gates** (Hypeddit, ToneDen, follow/like/repost or e-mail gates). When `purchase.gated` is `true`, say it is a gate and that the user can open it themselves if they accept its conditions.
 - Do not invent BPM, key or license data. If a field is `null`, say "unknown".
 
@@ -64,7 +64,7 @@ Give a numbered table:
 |---|---|---|---|---|---|---|---|
 
 - **Transition**: e.g. "8A→9A, +1 BPM, long blend" or "clash, cut on the drop".
-- **Get it**: the `download_url` (when `downloadable` is true) plus the track page `permalink_url`; or the external link, marked *(gated)* when `purchase.gated` is true.
+- **Get it**: the track page `permalink_url`, with "Download button on SoundCloud" when `downloadable` is true; or the artist's external link (`purchase.url`), marked *(gated)* when `purchase.gated` is true.
 - **License**: the label and a one-line `public_mix` verdict.
 
 Then add the total runtime, the tracks you dropped and why (one line each), and the license reminder below.

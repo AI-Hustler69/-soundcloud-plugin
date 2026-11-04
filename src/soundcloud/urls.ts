@@ -159,6 +159,8 @@ export function parseIdInput(input: string, expected: ResourceType): IdInput {
   return { kind: "url", url: parsePublicUrl(value) };
 }
 
+const AUDIO_PATH_RE = /\/(streams?|preview|download)(\/|$)/i;
+
 /** Only follow pagination / resolve links that stay on api.soundcloud.com over https. */
 export function assertApiUrl(href: string): URL {
   let url: URL;
@@ -169,6 +171,10 @@ export function assertApiUrl(href: string): URL {
   }
   if (url.protocol !== "https:" || url.hostname.toLowerCase() !== API_HOST) {
     throw new InputError(`Refusing to follow a non-SoundCloud-API URL: ${href}`);
+  }
+  // Defence in depth: never follow a server-supplied link to an audio endpoint.
+  if (AUDIO_PATH_RE.test(url.pathname)) {
+    throw new InputError(`Refusing to follow a link to an audio endpoint: ${url.pathname}`);
   }
   return url;
 }

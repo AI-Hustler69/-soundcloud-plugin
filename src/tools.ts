@@ -250,6 +250,7 @@ export async function getPlaylist(
   const parsed = parseIdInput(value, "playlist");
   let meta: SCPlaylist;
   let urn: string;
+  let secretToken: string | undefined;
   if (parsed.kind === "urn") {
     urn = parsed.urn;
     meta = await client.getPlaylist(urn, false);
@@ -258,10 +259,11 @@ export async function getPlaylist(
     if (resolved.type !== "playlist") throw new InputError(`That URL is a ${resolved.type}, not a playlist.`);
     urn = resolved.urn;
     meta = resolved.resource;
+    secretToken = resolved.secretToken;
   }
 
   const rawTracks: SCTrack[] = [];
-  let page = await client.getPlaylistTracksPage(urn, Math.min(MAX_PAGE_SIZE, maxTracks));
+  let page = await client.getPlaylistTracksPage(urn, Math.min(MAX_PAGE_SIZE, maxTracks), secretToken);
   let truncated = false;
   for (;;) {
     rawTracks.push(...(page.collection ?? []));
