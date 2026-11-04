@@ -56,9 +56,12 @@ const PROFILE_SUBPAGES = new Set([
 
 /** Parses and validates a public soundcloud.com URL. Throws InputError otherwise. */
 export function parsePublicUrl(input: string): URL {
+  let raw = input.trim();
+  // Accept links pasted without a scheme, e.g. "soundcloud.com/artist/track".
+  if (/^(m\.|www\.|on\.)?soundcloud\.com(\/|$)/i.test(raw)) raw = `https://${raw}`;
   let url: URL;
   try {
-    url = new URL(input.trim());
+    url = new URL(raw);
   } catch {
     throw new InputError(`Not a valid URL: ${input}`);
   }
@@ -71,6 +74,22 @@ export function parsePublicUrl(input: string): URL {
   url.protocol = "https:";
   if (url.hostname.toLowerCase() === "m.soundcloud.com" || url.hostname.toLowerCase() === "www.soundcloud.com") {
     url.hostname = "soundcloud.com";
+  }
+  return url;
+}
+
+/**
+ * Rejects soundcloud.com pages that can never be a track, playlist or profile
+ * (home page, /discover, /search, /you/…), so users get a clear message
+ * instead of a misleading "not found / private".
+ */
+export function assertContentUrl(url: URL): URL {
+  if (isShortLink(url)) return url;
+  const first = url.pathname.split("/").filter(Boolean)[0];
+  if (!first || RESERVED_ROOTS.has(first.toLowerCase())) {
+    throw new InputError(
+      `That SoundCloud page is not a track, playlist or profile: ${url.toString()}. Use a link like https://soundcloud.com/artist/track, …/artist/sets/name or …/artist.`,
+    );
   }
   return url;
 }
@@ -156,7 +175,7 @@ export function parseIdInput(input: string, expected: ResourceType): IdInput {
     if (api.type !== expected) throw new InputError(`Expected a ${expected} but got a ${api.type}: ${value}`);
     return { kind: "urn", urn: api.urn };
   }
-  return { kind: "url", url: parsePublicUrl(value) };
+  return { kind: "url", url: assertContentUrl(parsePublicUrl(value)) };
 }
 
 const AUDIO_PATH_RE = /\/(streams?|preview|download)(\/|$)/i;

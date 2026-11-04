@@ -192,8 +192,10 @@ describe("get_track", () => {
   });
 
   it("requires a URL in oEmbed mode", async () => {
-    const { ctx } = oembedCtx();
-    await expect(getTrack(ctx, { track: "12345" })).rejects.toBeInstanceOf(InputError);
+    const { mock, ctx } = oembedCtx();
+    await expect(getTrack(ctx, { track: "12345" })).rejects.toThrow(/limited mode.*public SoundCloud track URL.*need the API/s);
+    await expect(getTrack(ctx, { track: "soundcloud:tracks:1" })).rejects.toThrow(/need the API/);
+    expect(mock.calls).toHaveLength(0);
     await expect(getTrack(ctx, { track: "https://soundcloud.com/artist/sets/x" })).rejects.toThrow(/playlist/);
   });
 });
@@ -315,6 +317,22 @@ describe("resolve_url", () => {
     mock.on("GET", "https://soundcloud.com/oembed?", json({ title: "Profile", author_name: "dj", html: "<iframe></iframe>" }));
     const r = await resolveUrl(ctx, { url: "https://soundcloud.com/dj/sets/crate" });
     expect(r).toMatchObject({ mode: "oembed_limited", type: "playlist", id: null, urn: null, title: "Profile" });
+  });
+
+  it("rejects site pages that are not content before any request", async () => {
+    for (const ctx of [apiCtx(), oembedCtx()]) {
+      for (const url of ["https://soundcloud.com/", "https://soundcloud.com/discover", "https://soundcloud.com/search?q=x", "https://soundcloud.com/you/likes"]) {
+        await expect(resolveUrl(ctx.ctx, { url })).rejects.toThrow(/not a track, playlist or profile/);
+      }
+      await expect(getTrack(ctx.ctx, { track: "https://soundcloud.com/discover" })).rejects.toThrow(/not a track, playlist or profile/);
+      expect(ctx.mock.calls).toHaveLength(0);
+    }
+  });
+
+  it("accepts scheme-less soundcloud.com links in oEmbed mode", async () => {
+    const { mock, ctx } = oembedCtx();
+    mock.on("GET", "https://soundcloud.com/oembed?", json({ title: "T", author_name: "A", html: "" }));
+    await expect(getTrack(ctx, { track: "soundcloud.com/artist/song" })).resolves.toMatchObject({ track: { title: "T" } });
   });
 
   it("rejects non-SoundCloud URLs before any request", async () => {

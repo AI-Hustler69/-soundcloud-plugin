@@ -15,7 +15,7 @@ import { MAX_PAGE_SIZE } from "./soundcloud/client.js";
 import { InputError } from "./soundcloud/errors.js";
 import { idFromEmbedHtml, type OEmbedClient } from "./soundcloud/oembed.js";
 import type { SCPlaylist, SCTrack, SCUser } from "./soundcloud/types.js";
-import { guessTypeFromUrl, parseIdInput, parsePublicUrl, toUrn, type ResourceType } from "./soundcloud/urls.js";
+import { assertContentUrl, guessTypeFromUrl, parseIdInput, parsePublicUrl, toUrn, type ResourceType } from "./soundcloud/urls.js";
 import { summarizeTrack, type TrackSummary } from "./tracks.js";
 
 export interface ToolContext {
@@ -165,7 +165,13 @@ export async function getTrack(ctx: ToolContext, input: { track: string }): Prom
   if (!value) throw new InputError("Provide a track URL, numeric id or URN.");
 
   if (ctx.mode !== "api" || !ctx.client) {
-    const url = parsePublicUrl(value); // oEmbed needs a public URL
+    // oEmbed only accepts public URLs; ids and URNs need the API.
+    if (!/^https?:\/\//i.test(value) && !/^(m\.|www\.|on\.)?soundcloud\.com\//i.test(value)) {
+      throw new InputError(
+        `In limited mode (no API credentials) get_track needs a public SoundCloud track URL such as https://soundcloud.com/artist/track; numeric ids and URNs like "${value}" need the API. ${LIMITED_MODE_HELP}`,
+      );
+    }
+    const url = assertContentUrl(parsePublicUrl(value));
     const guessed = guessTypeFromUrl(url);
     if (guessed && guessed !== "track") throw new InputError(`That URL looks like a ${guessed}, not a track.`);
     const o = await ctx.oembed.lookup(url.toString());
@@ -321,7 +327,7 @@ export interface ResolveUrlResult {
 }
 
 export async function resolveUrl(ctx: ToolContext, input: { url: string }): Promise<ResolveUrlResult> {
-  const url = parsePublicUrl(input.url ?? "");
+  const url = assertContentUrl(parsePublicUrl(input.url ?? ""));
 
   if (ctx.mode === "api" && ctx.client) {
     const r = await ctx.client.resolve(url.toString());
