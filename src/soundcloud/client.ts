@@ -6,7 +6,7 @@
  */
 import { USER_AGENT } from "../config.js";
 import type { TokenSource } from "./auth.js";
-import { parseRetryAfter } from "./auth.js";
+import { retryDelaySeconds } from "./auth.js";
 import { AuthError, NotFoundError, RateLimitError, SoundCloudError, truncate, describeNetworkError } from "./errors.js";
 import type { FetchLike, SCCollection, SCPlaylist, SCTrack, SCUser } from "./types.js";
 import { API_HOST, assertApiUrl, parseApiResourceUrl, type ResourceType } from "./urls.js";
@@ -172,7 +172,7 @@ export class SoundCloudClient {
         continue;
       }
       if (res.status === 429) {
-        const retryAfter = parseRetryAfter(res.headers.get("retry-after"), this.now());
+        const retryAfter = retryDelaySeconds(res.headers, this.now());
         const waitMs = (retryAfter ?? 1) * 1000;
         if (rateLimitRetries < this.maxRateLimitRetries && waitMs <= this.maxRetryWaitMs) {
           rateLimitRetries++;

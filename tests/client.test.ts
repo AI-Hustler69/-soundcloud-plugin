@@ -76,6 +76,19 @@ describe("SoundCloudClient", () => {
     expect(waits).toEqual([2000]);
   });
 
+  it("uses x-ratelimit-reset when Retry-After is absent (SoundCloud gateway behaviour)", async () => {
+    const waits: number[] = [];
+    const mock = new MockFetch();
+    mock.on("POST", TOKEN_URL, tokenResponse("tok"));
+    mock.on("GET", `${API}/tracks/`, json({ error: "Rate Limit Exceeded" }, 429, { "x-ratelimit-limit": "1000", "x-ratelimit-remaining": "0", "x-ratelimit-reset": "1793789413" }), 1);
+    mock.on("GET", `${API}/tracks/`, json(track({ id: 6 })));
+    const auth = new ClientCredentialsAuth({ clientId: "id", clientSecret: "s", fetch: mock.fetch });
+    const now = Date.parse("2026-11-04T10:50:10Z");
+    const client = new SoundCloudClient({ auth, fetch: mock.fetch, sleep: async (ms) => void waits.push(ms), now: () => now });
+    await expect(client.getTrack("soundcloud:tracks:6")).resolves.toMatchObject({ urn: "soundcloud:tracks:6" });
+    expect(waits).toEqual([3000]);
+  });
+
   it("throws RateLimitError when Retry-After is too long or retries are exhausted", async () => {
     const { mock, client } = setup();
     mock.on("GET", `${API}/tracks/`, json({}, 429, { "retry-after": "3600" }));

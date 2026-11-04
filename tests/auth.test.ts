@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ClientCredentialsAuth, parseRetryAfter } from "../src/soundcloud/auth.js";
+import { ClientCredentialsAuth, parseRetryAfter, retryDelaySeconds } from "../src/soundcloud/auth.js";
 import { AuthError, RateLimitError } from "../src/soundcloud/errors.js";
 import { json, MockFetch, TOKEN_URL, tokenResponse } from "./helpers.js";
 
@@ -110,6 +110,19 @@ describe("ClientCredentialsAuth", () => {
     mock.on("POST", TOKEN_URL, tokenResponse("ok"));
     await expect(auth.getToken()).rejects.toBeInstanceOf(AuthError);
     await expect(auth.getToken()).resolves.toBe("ok");
+  });
+});
+
+describe("retryDelaySeconds", () => {
+  const now = Date.parse("2026-11-04T10:49:41Z");
+  it("reads SoundCloud's x-ratelimit-reset epoch header (as seen live)", () => {
+    expect(retryDelaySeconds(new Headers({ "x-ratelimit-reset": "1793789413" }), now)).toBe(32);
+    expect(retryDelaySeconds(new Headers({ "x-ratelimit-reset": "1793780000" }), now)).toBe(0);
+  });
+  it("treats small x-ratelimit-reset values as a delta and prefers Retry-After", () => {
+    expect(retryDelaySeconds(new Headers({ "x-ratelimit-reset": "45" }), now)).toBe(45);
+    expect(retryDelaySeconds(new Headers({ "retry-after": "3", "x-ratelimit-reset": "1793789413" }), now)).toBe(3);
+    expect(retryDelaySeconds(new Headers({}), now)).toBeUndefined();
   });
 });
 

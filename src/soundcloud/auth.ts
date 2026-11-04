@@ -110,7 +110,7 @@ export class ClientCredentialsAuth implements TokenSource {
     if (res.status === 429) {
       throw new RateLimitError(
         "SoundCloud is rate-limiting token requests for this app (roughly 50 tokens per 12 hours). Wait and try again later.",
-        parseRetryAfter(res.headers.get("retry-after"), this.now()),
+        retryDelaySeconds(res.headers, this.now()),
       );
     }
     if (!res.ok) {
@@ -139,6 +139,22 @@ export class ClientCredentialsAuth implements TokenSource {
     };
     return data.access_token;
   }
+}
+
+/**
+ * Seconds to wait after a 429. SoundCloud's gateway sends
+ * `x-ratelimit-reset` (Unix epoch seconds) rather than Retry-After, so both
+ * are read; Retry-After wins when present.
+ */
+export function retryDelaySeconds(headers: Headers, nowMs: number = Date.now()): number | undefined {
+  const retryAfter = parseRetryAfter(headers.get("retry-after"), nowMs);
+  if (retryAfter !== undefined) return retryAfter;
+  const reset = headers.get("x-ratelimit-reset")?.trim();
+  if (!reset || !/^\d+$/.test(reset)) return undefined;
+  const resetSeconds = Number(reset);
+  // Small values are a delta, large ones an epoch timestamp.
+  if (resetSeconds < 1_000_000_000) return resetSeconds;
+  return Math.max(0, Math.ceil(resetSeconds - nowMs / 1000));
 }
 
 /** Parses Retry-After as delta-seconds or HTTP-date. Returns seconds or undefined. */
