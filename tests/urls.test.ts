@@ -15,6 +15,9 @@ describe("parsePublicUrl", () => {
     expect(parsePublicUrl("http://m.soundcloud.com/a/b").toString()).toBe("https://soundcloud.com/a/b");
     expect(parsePublicUrl(" https://www.soundcloud.com/a ").hostname).toBe("soundcloud.com");
     expect(parsePublicUrl("https://on.soundcloud.com/AbCd").hostname).toBe("on.soundcloud.com");
+    expect(parsePublicUrl("soundcloud.com/a/b").toString()).toBe("https://soundcloud.com/a/b");
+    expect(parsePublicUrl("m.soundcloud.com/a").toString()).toBe("https://soundcloud.com/a");
+    expect(parseIdInput("soundcloud.com/a/b", "track")).toMatchObject({ kind: "url" });
   });
 
   it.each(["https://evil.com/soundcloud.com/a", "https://soundcloud.com.evil.com/a", "ftp://soundcloud.com/a", "nope", "file:///etc/passwd"])(
