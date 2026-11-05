@@ -46,7 +46,9 @@
     "free-download",
     "creative-commons",
     "music-discovery",
-    "drum-and-bass"
+    "drum-and-bass",
+    "codex",
+    "openai-codex"
   ],
   "homepage": "https://github.com/AI-Hustler69/soundcloud-dj-plugin#readme",
   "bugs": {
