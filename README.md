@@ -9,7 +9,7 @@ A **Claude Code plugin** and **MCP (Model Context Protocol) server** for the off
 - Check a **SoundCloud playlist or label set** to see which tracks can be downloaded.
 - Flag "free download" links that go through **download gates** (Hypeddit, ToneDen). They are reported, never bypassed.
 - A **DJ set builder skill** (`dj-crate`) that orders tracks by tempo and **harmonic mixing** rules (Camelot wheel) and suggests transitions.
-- Works in **Claude Code**, **Claude Desktop** and any other MCP client. A limited mode works without API keys.
+- Works in **Claude Code**, **Claude Desktop**, **OpenAI Codex** and any other MCP client. A limited mode works without API keys.
 
 **Quick install** (Claude Code):
 
@@ -126,6 +126,41 @@ Other clients, such as Claude Desktop, take a `claude_desktop_config.json` entry
 ```
 
 The package is also ready to publish on npm as `soundcloud-dj-mcp`. Once it is published, you can use `"command": "npx", "args": ["-y", "soundcloud-dj-mcp"]` instead of a local path.
+
+### With OpenAI Codex
+
+The MCP server and the `dj-crate` skill also work in [OpenAI Codex](https://developers.openai.com/codex) (CLI and IDE extension). Codex has no equivalent of the one-command Claude plugin install, so add both parts by hand:
+
+1. Clone the repository. The bundled `dist/server.js` needs no `npm install`:
+
+   ```bash
+   git clone https://github.com/AI-Hustler69/soundcloud-dj-plugin.git ~/soundcloud-dj-plugin
+   ```
+
+2. Register the server in `~/.codex/config.toml`. Use the absolute path, because `~` is not expanded there. `env_vars` forwards the variables from your shell, so the credentials stay out of the file:
+
+   ```toml
+   [mcp_servers.soundcloud]
+   command = "node"
+   args = ["/home/YOUR_USER/soundcloud-dj-plugin/dist/server.js"]
+   env_vars = ["SOUNDCLOUD_CLIENT_ID", "SOUNDCLOUD_CLIENT_SECRET", "HTTPS_PROXY", "NO_PROXY"]
+   ```
+
+3. Install the skill. Codex uses the same `SKILL.md` format:
+
+   ```bash
+   mkdir -p ~/.codex/skills && cp -r ~/soundcloud-dj-plugin/skills/dj-crate ~/.codex/skills/
+   ```
+
+4. Restart Codex and check that the server is listed:
+
+   ```bash
+   codex mcp list
+   ```
+
+Then ask Codex, for example, "Build me a free-download drum & bass crate around 174 BPM". Without credentials the server runs in the [limited mode](#limited-mode-without-api-keys). To update later, run `git -C ~/soundcloud-dj-plugin pull` and copy the skill again.
+
+> Checked with Codex CLI 0.166.0: it accepts this configuration and lists the server. Tool calls were not exercised inside Codex itself, because that needs an OpenAI login. The server speaks standard MCP over stdio, the same transport Claude Code uses.
 
 ## Limited mode without API keys
 
