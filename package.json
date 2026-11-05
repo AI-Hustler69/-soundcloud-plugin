@@ -1,7 +1,7 @@
 {
   "name": "soundcloud-dj-mcp",
   "version": "0.1.1",
-  "description": "MCP server for finding free-to-download SoundCloud tracks (artist-enabled downloads only) and building DJ crates. Metadata and links only; never downloads or rips audio.",
+  "description": "SoundCloud MCP server and Claude Code plugin: find free-download tracks, check Creative Commons licenses, and build DJ sets by BPM and Camelot key. Metadata and links only; never downloads or rips audio.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -29,12 +29,29 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "claude",
+    "claude-code",
     "claude-code-plugin",
+    "anthropic",
     "soundcloud",
-    "dj"
+    "soundcloud-api",
+    "dj",
+    "dj-tools",
+    "dj-set",
+    "harmonic-mixing",
+    "camelot",
+    "bpm",
+    "free-download",
+    "creative-commons",
+    "music-discovery",
+    "drum-and-bass"
   ],
+  "homepage": "https://github.com/AI-Hustler69/-soundcloud-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/AI-Hustler69/-soundcloud-plugin/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AI-Hustler69/-soundcloud-plugin.git"

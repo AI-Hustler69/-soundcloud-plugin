@@ -2,7 +2,7 @@
   "name": "soundcloud-dj",
   "displayName": "SoundCloud DJ Crate",
   "version": "0.1.1",
-  "description": "Find SoundCloud tracks that artists made free to download and build DJ crates ordered by BPM and Camelot key. Metadata and links only: never downloads, rips streams or bypasses download gates.",
+  "description": "Find SoundCloud tracks with artist-enabled free downloads, check their licenses, and build DJ sets ordered by BPM and Camelot key for harmonic mixing. Metadata and links only: never downloads, rips streams or bypasses download gates.",
   "author": {
     "name": "AI-Hustler69",
     "url": "https://github.com/AI-Hustler69"
@@ -10,5 +10,19 @@
   "homepage": "https://github.com/AI-Hustler69/-soundcloud-plugin#readme",
   "repository": "https://github.com/AI-Hustler69/-soundcloud-plugin",
   "license": "MIT",
-  "keywords": ["soundcloud", "dj", "music", "free-download", "camelot", "bpm", "mcp"]
+  "keywords": [
+    "soundcloud",
+    "soundcloud-api",
+    "dj",
+    "dj-tools",
+    "dj-set",
+    "free-download",
+    "harmonic-mixing",
+    "camelot",
+    "bpm",
+    "creative-commons",
+    "music-discovery",
+    "drum-and-bass",
+    "mcp"
+  ]
 }
