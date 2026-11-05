@@ -14,7 +14,7 @@ A **Claude Code plugin** and **MCP (Model Context Protocol) server** for the off
 **Quick install** (Claude Code):
 
 ```text
-/plugin marketplace add AI-Hustler69/-soundcloud-plugin
+/plugin marketplace add AI-Hustler69/soundcloud-dj-plugin
 /plugin install soundcloud-dj@soundcloud-dj-tools
 ```
 
@@ -76,14 +76,14 @@ Put these lines in your shell profile, for example `~/.zshrc` or `~/.bashrc`, so
 The repository is also a plugin marketplace. In Claude Code:
 
 ```text
-/plugin marketplace add AI-Hustler69/-soundcloud-plugin
+/plugin marketplace add AI-Hustler69/soundcloud-dj-plugin
 /plugin install soundcloud-dj@soundcloud-dj-tools
 ```
 
 Or from your shell:
 
 ```bash
-claude plugin marketplace add AI-Hustler69/-soundcloud-plugin
+claude plugin marketplace add AI-Hustler69/soundcloud-dj-plugin
 ```
 
 ```bash
@@ -99,7 +99,7 @@ The plugin starts the server with `node ${CLAUDE_PLUGIN_ROOT}/dist/server.js`. `
 To use the server in another MCP client, or in Claude Code without the plugin, run the bundle directly:
 
 ```bash
-git clone https://github.com/AI-Hustler69/-soundcloud-plugin.git soundcloud-dj
+git clone https://github.com/AI-Hustler69/soundcloud-dj-plugin.git soundcloud-dj
 ```
 
 Register it with Claude Code:

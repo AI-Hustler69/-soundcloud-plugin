@@ -48,13 +48,13 @@
     "music-discovery",
     "drum-and-bass"
   ],
-  "homepage": "https://github.com/AI-Hustler69/-soundcloud-plugin#readme",
+  "homepage": "https://github.com/AI-Hustler69/soundcloud-dj-plugin#readme",
   "bugs": {
-    "url": "https://github.com/AI-Hustler69/-soundcloud-plugin/issues"
+    "url": "https://github.com/AI-Hustler69/soundcloud-dj-plugin/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AI-Hustler69/-soundcloud-plugin.git"
+    "url": "git+https://github.com/AI-Hustler69/soundcloud-dj-plugin.git"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
