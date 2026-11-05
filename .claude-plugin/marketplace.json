@@ -1,6 +1,6 @@
 {
   "name": "soundcloud-dj-tools",
-  "description": "SoundCloud DJ crate plugin: MCP connector + dj-crate skill",
+  "description": "SoundCloud DJ tools for Claude Code: MCP server and dj-crate skill for free-download DJ sets",
   "owner": {
     "name": "AI-Hustler69",
     "url": "https://github.com/AI-Hustler69"
@@ -9,7 +9,7 @@
     {
       "name": "soundcloud-dj",
       "source": "./",
-      "description": "Find artist-enabled free downloads on SoundCloud and build DJ crates by BPM and Camelot key."
+      "description": "Find SoundCloud tracks with artist-enabled free downloads and build DJ sets by BPM and Camelot key."
     }
   ]
 }

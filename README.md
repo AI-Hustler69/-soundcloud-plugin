@@ -1,6 +1,22 @@
-# SoundCloud DJ Crate: Claude plugin and MCP server
+# SoundCloud DJ Crate: Claude Code plugin and MCP server for free-download DJ sets
 
-Find SoundCloud tracks that **their artists made free to download** and build DJ crates ordered by BPM and Camelot key.
+A **Claude Code plugin** and **MCP (Model Context Protocol) server** for the official **SoundCloud API**. It finds tracks that **their artists made free to download**, checks each track's **license** (Creative Commons or all rights reserved), and builds a **DJ crate ordered by BPM and Camelot key** for harmonic mixing. It works for any genre on SoundCloud: drum & bass and neurofunk, techno, house, dubstep, lo-fi and more.
+
+**Features**
+
+- Search SoundCloud by text, genre and **BPM range**, keeping only tracks with **artist-enabled free downloads**.
+- Get **BPM, musical key with Camelot code, duration and license** for each track, plus a plain-language verdict on whether it is likely OK in a public mix.
+- Check a **SoundCloud playlist or label set** to see which tracks can be downloaded.
+- Flag "free download" links that go through **download gates** (Hypeddit, ToneDen). They are reported, never bypassed.
+- A **DJ set builder skill** (`dj-crate`) that orders tracks by tempo and **harmonic mixing** rules (Camelot wheel) and suggests transitions.
+- Works in **Claude Code**, **Claude Desktop** and any other MCP client. A limited mode works without API keys.
+
+**Quick install** (Claude Code):
+
+```text
+/plugin marketplace add AI-Hustler69/-soundcloud-plugin
+/plugin install soundcloud-dj@soundcloud-dj-tools
+```
 
 The plugin has two parts:
 
