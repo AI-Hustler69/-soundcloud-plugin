@@ -22,7 +22,7 @@ const result = await build({
   banner: {
     js: [
       "#!/usr/bin/env node",
-      "// soundcloud-dj-mcp: bundled build, see https://github.com/AI-Hustler69/-soundcloud-plugin for sources.",
+      "// soundcloud-dj-mcp: bundled build, see https://github.com/AI-Hustler69/soundcloud-dj-plugin for sources.",
       "// Third-party licenses: THIRD_PARTY_LICENSES.txt next to this file.",
       "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);",
     ].join("\n"),
